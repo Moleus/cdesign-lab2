@@ -1,2 +1,5 @@
+.*
+!.gitignore
 *.pdf
 student.typ
+obj_dir/
