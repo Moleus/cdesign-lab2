@@ -1,24 +1,61 @@
-// module which implements function a^3 + root(2, b)
-// Restrictions:
-// - single mult unit
-// - 2 sum units
+`timescale 1ns / 1ps
 
 module func (
-    input [31:0] a,
-    input [31:0] b,
-    output [31:0] f
+    input clk_i,
+    input rst_i,
+    input [7:0] a_bi,
+    input [7:0] b_bi,
+    input start_i,
+    output busy_o,
+    output reg [24:0] y_bo
 );
 
-    wire [31:0] a3;
-    wire [31:0] broot2;
-    wire [31:0] f1;
-    wire [31:0] f2;
+  localparam IDLE = 1'b0;
+  localparam WORK = 1'b1;
 
-    mult mult1 (a, a, a3);
+  reg state;
 
-    sum sum1 (a3, broot2, f1);
-    sum sum2 (f1, a3, f2);
+  wire busy_sqrt;
+  wire busy_pow;
+  wire [7:0] sqrt_res;
+  wire [23:0] pow_res;
 
-    assign f = f2;
+  sqrt sq (
+      .clk_i(clk_i),
+      .rst_i(rst_i),
+      .x_bi(b_bi),
+      .start_i(start_i),
+      .busy_o(busy_sqrt),
+      .y_bo(sqrt_res)
+  );
+  pow3 pow (
+      .clk_i(clk_i),
+      .rst_i(rst_i),
+      .x_bi(a_bi),
+      .start_i(start_i),
+      .busy_o(busy_pow),
+      .y_bo(pow_res)
+  );
 
+  assign busy_o = state;
+
+  always @(posedge clk_i)
+    if (rst_i) begin
+      y_bo  <= 0;
+      state <= IDLE;
+    end else begin
+      case (state)
+        IDLE:
+        if (start_i) begin
+          state <= WORK;
+          y_bo  <= 0;
+        end
+        WORK: begin
+          if ((~busy_sqrt) & (~busy_pow)) begin
+            state <= IDLE;
+            y_bo  <= {{17{1'b0}}, sqrt_res} + pow_res;
+          end
+        end
+      endcase
+    end
 endmodule

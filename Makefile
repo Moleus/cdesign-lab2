@@ -1,9 +1,9 @@
 # Makefile to run Verilator
-BINARY_NAME := mult_test
-VERILOG_SRC := src/sqrt_test.v
+BINARY_NAME := func_test
+VERILOG_SRC := src/func_test.v
 VERILATOR_CMD := verilator
 OBJ_DIR := ./obj_dir
-VERILATOR_FLAGS := -Isrc --binary
+VERILATOR_FLAGS := -Isrc --binary -Wno-WIDTHEXPAND
 
 # Build target
 build_test: $(VERILOG_SRC)

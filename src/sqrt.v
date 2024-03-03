@@ -1,45 +1,63 @@
-// implements a simple square root algorithm
 `timescale 1ns / 1ps
 
-// использовать беззнаковые числа с разрядностью 8 бит
-module sqrt (
-    input clk_i,
-    input rst_i,
-    input [7:0] x_i,
-    output ready_o,
-    output reg [3:0] result_o
-);
-  // reg [3:0] result_o;
-  reg  [7:0] acc2;
+module sqrt(
+        input clk_i,
+        input rst_i,
+        input [7:0] x_bi,
+        input start_i,
+        output busy_o,
+        output reg [7:0] y_bo
+    );
 
-  // Keep track of which bit I'm working on.
-  reg  [2:0] bitl;
-  wire [3:0] _bit = 1 << bitl;
-  wire [7:0] bit2 = 1 << (bitl << 1);
+    localparam IDLE = 1'b0;
+    localparam WORK = 1'b1;
 
-  // The output is ready when the bitl counter underflows.
-  assign ready_o = bitl[1];
+    reg [7:0] x;
+    reg [7:0] m;
+    reg [7:0] y;
+    wire [7:0] y_shifted;
+    reg [7:0] b;
+    reg state;
+    wire end_step;
+    wire [7:0] b_tmp;
 
-  wire [3:0] guess = result_o | _bit;
-  wire [7:0] guess2 = acc2 + bit2 + ((result_o << bitl) << 1);
+    assign end_step = (m == 0);
+    assign busy_o = state;
+    assign y_shifted = y >> 1;
+    assign b_tmp = y | m;
 
-  initial begin
-    result_o = 0;
-    acc2 = 0;
-    bitl = 3;
-  end
-
-  always @(rst_i or posedge clk_i)
-    if (rst_i) begin
-      result_o <= 0;
-      acc2 <= 0;
-      bitl <= 3;
-    end else begin
-      if (guess2 <= x_i) begin
-        result_o <= guess;
-        acc2 <= guess2;
-      end
-      bitl <= bitl - 1;
-    end
+    always @(posedge clk_i)
+        if (rst_i) begin
+            y <= 0;
+            y_bo <= 0;
+            state <= IDLE;
+        end
+        else begin
+            case (state)
+            IDLE:
+                if (start_i) begin
+                    state <= WORK;
+                    x <= x_bi;
+                    m <= 8'b01000000;
+                    b <= 0;
+                    y_bo <= 0;
+                    y <= 0;
+                end
+            WORK:
+                if (end_step) begin
+                    state <= IDLE;
+                    y_bo <= y;
+                end else begin
+                    b <= b_tmp;
+                    if (x >= b_tmp) begin
+                        x <= x - b_tmp;
+                        y <= y_shifted | m;
+                    end
+                    else begin
+                        y <= y_shifted;
+                    end
+                    m <= m >> 2;
+                end
+            endcase
+        end
 endmodule
-
