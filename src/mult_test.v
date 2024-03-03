@@ -39,6 +39,11 @@ module mult_test;
     // Clock generation
     always #((CLK_PERIOD/2)) clk = ~clk;
 
+//       always @(posedge rdy) begin
+//          $display("sqrt(%d) --> %d", value, result);
+//          $finish;
+//       end
+
     // Test cases
     initial begin
         // Test case 1
