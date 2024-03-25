@@ -7,7 +7,7 @@ module func (
     input [7:0] b_bi,
     input start_i,
     output busy_o,
-    output reg [24:0] y_bo
+    output reg [15:0] y_bo
 );
 
   localparam IDLE = 1'b0;
