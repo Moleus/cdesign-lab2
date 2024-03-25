@@ -36,13 +36,13 @@ module func_test ();
     begin
       a_w = test_a;
       b_w = test_b;
-      #10 start = 1;
-      #10 clk = 1;
-      #10 clk = 0;
+      #5 start = 1;
+      #5 clk = 1;
+      #5 clk = 0;
       start = 0;
       while (busy_w) begin
-        #10 clk = 1;
-        #10 clk = 0;
+        #5 clk = 1;
+        #5 clk = 0;
       end
       #1
       if (out_w != expected) begin
@@ -58,7 +58,7 @@ module func_test ();
   initial begin
     rst = 1;
     clk = 1;
-    #10 clk = 0;
+    #5 clk = 0;
     rst = 0;
 
     // Run tests using the task
