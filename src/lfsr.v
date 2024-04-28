@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
 
-module crc8(
+module lfsr(
     input  wire          clk,
     input  wire          rst,
-    input  wire          bit,
+    input  wire [7:0]   init,
     input  wire        shift,
     output wire [7:0] result
 );
@@ -15,19 +15,18 @@ module crc8(
 
     always @(posedge clk) begin
         if (rst) begin
-            buffer <= 8'hff;
+            buffer <= init;
         end else if (shift) begin
-            // y = 1 + x^4 + x^5 + x^7 + x^8
+            // y = 1 + x^2 + x^4 + x^5 + x^8
 
-            buffer[0] <= bit ^ buffer[7];
+            buffer[0] <= buffer[0] ^ buffer[2] ^ buffer[4] ^ buffer[5];
             buffer[1] <= buffer[0];
             buffer[2] <= buffer[1];
             buffer[3] <= buffer[2];
-            buffer[4] <= buffer[3]^ buffer[7];
-            buffer[5] <= buffer[4]^ buffer[7];
+            buffer[4] <= buffer[3];
+            buffer[5] <= buffer[4];
             buffer[6] <= buffer[5];
-            buffer[7] <= buffer[6] ^ buffer[7];
+            buffer[7] <= buffer[6];
         end
     end
-
 endmodule
