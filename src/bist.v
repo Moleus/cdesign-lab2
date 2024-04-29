@@ -171,8 +171,8 @@ always @(posedge clk) begin
                 begin
                     test_cnt <= test_cnt + 1;
                     sr_rst <= 1;
-                    lfsr1_init <= 0;
-                    lfsr2_init <= 0;
+                    lfsr1_init <= 1;
+                    lfsr2_init <= 1;
                     state <= S6;
                 end
 
