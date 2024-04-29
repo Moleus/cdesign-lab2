@@ -171,8 +171,8 @@ always @(posedge clk) begin
                 begin
                     test_cnt <= test_cnt + 1;
                     sr_rst <= 1;
-                    lfsr1_init <= 1;
-                    lfsr2_init <= 1;
+                    lfsr1_init <= 2;
+                    lfsr2_init <= 2;
                     state <= S6;
                 end
 
@@ -203,7 +203,7 @@ always @(posedge clk) begin
                 begin
                     dut_a <= lfsr1_result;
                     dut_b <= lfsr2_result;
-                    $display("%d\n%d",lfsr1_result, lfsr2_result);
+                    $display("%d %d",lfsr1_result, lfsr2_result);
                     dut_start <= 1;
                     state <= S10;
                 end
