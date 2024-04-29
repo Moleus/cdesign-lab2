@@ -132,7 +132,7 @@ always @(posedge clk) begin
             S0:
                 begin
                     dut_rst <= 0;
-                    if (flt_test != flt_test_prev && flt_test) begin
+                    if (~flt_test_prev && flt_test) begin
                         state <= S5;
                     end
                     if (~flt_default_mode_prev && flt_default_mode) begin
@@ -163,7 +163,6 @@ always @(posedge clk) begin
 
             S4:
                 begin
-                    out[15:12] <= 0;
                     out[15:0] <= dut_y;
                     state <= S0;
                 end
@@ -229,7 +228,7 @@ always @(posedge clk) begin
                     crc_bit <= dut_y[result_bit];
                     result_bit <= result_bit + 1;
 
-                    if (result_bit == 11) begin
+                    if (result_bit == 15) begin
                         state <= S13;
                     end
                 end
@@ -257,3 +256,4 @@ always @(posedge clk) begin
 end
 
 endmodule
+
