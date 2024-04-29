@@ -11,21 +11,21 @@ module bist(
     output reg  [15:0]   out
 );
 
-    localparam S0 = 0,
-               S1 = 1,
-               S2 = 2,
-               S3 = 3,
-               S4 = 4,
-               S5 = 5,
-               S6 = 6,
-               S7 = 7,
-               S8 = 8,
-               S9 = 9,
-               S10 = 10,
-               S11 = 11,
-               S12 = 12,
-               S13 = 13,
-               S14 = 14;
+    localparam CHOOSE_MODE = 0,
+               START_CALC = 1,
+               START_CALC_2 = 2,
+               WAIT_RES = 3,
+               OUT_RESULT = 4,
+               TEST = 5,
+               INIT_ITER = 6,
+               PRINT_CRC = 7,
+               COMP_LFSR = 8,
+               DEBUG_LFSR_RES = 9,
+               TEST_START = 10,
+               WAIT_TEST = 11,
+               CALC_CRC = 12,
+               CHECK_TEST_ITER = 13,
+               SHOW_TEST_RES = 14;
 
     reg  [3:0] state;
     wire       flt_test;
@@ -111,7 +111,7 @@ always @(posedge clk) begin
 
     if (rst) begin
         out <= 0;
-        state <= S0;
+        state <= CHOOSE_MODE;
         test_mode <= 0;
         default_mode<=0;
         test_cnt <= 0;
@@ -129,127 +129,127 @@ always @(posedge clk) begin
         result_bit <= 0;
     end else begin
         case (state)
-            S0:
+            CHOOSE_MODE:
                 begin
                     dut_rst <= 0;
                     if (~flt_test_prev && flt_test) begin
-                        state <= S5;
+                        state <= TEST;
                     end
                     if (~flt_default_mode_prev && flt_default_mode) begin
-                        state <= S1;
+                        state <= START_CALC;
                     end
                 end
 
-            S1:
+            START_CALC:
                 begin
                     dut_a <= a;
                     dut_b <= b;
                     dut_start <= 1;
-                    state <= S2;
+                    state <= START_CALC_2;
                 end
 
-            S2:
+            START_CALC_2:
                 begin
                     dut_start <= 0;
-                    state <= S3;
+                    state <= WAIT_RES;
                 end
 
-            S3:
+            WAIT_RES:
                 begin
                     if (~dut_busy) begin
-                        state <= S4;
+                        state <= OUT_RESULT;
                     end
                 end
 
-            S4:
+            OUT_RESULT:
                 begin
                     out[15:0] <= dut_y;
-                    state <= S0;
+                    state <= CHOOSE_MODE;
                 end
 
-            S5:
+            TEST:  // test mode
                 begin
                     test_cnt <= test_cnt + 1;
                     sr_rst <= 1;
                     lfsr1_init <= 2;
                     lfsr2_init <= 2;
-                    state <= S6;
+                    state <= INIT_ITER;
                 end
 
-            S6:
+            INIT_ITER:
                 begin
                     out[15:8] <= test_cnt;
                     sr_rst <= 0;
                     test_iteration <= 0;
-                    state <= S7;
+                    state <= PRINT_CRC;
                 end
 
-            S7:
+            PRINT_CRC:
                 begin
                     out[7:0] <= crc_result;
                     lfsr_shift <= 1;
                     dut_rst <= 1;
-                    state <= S8;
+                    state <= COMP_LFSR;
                 end
 
-            S8:
+            COMP_LFSR:
                 begin
                     lfsr_shift <= 0;
                     dut_rst <= 0;
-                    state <= S9;
+                    state <= DEBUG_LFSR_RES;
                 end
 
-            S9:
+            DEBUG_LFSR_RES:
                 begin
                     dut_a <= lfsr1_result;
                     dut_b <= lfsr2_result;
                     $display("%d %d",lfsr1_result, lfsr2_result);
                     dut_start <= 1;
-                    state <= S10;
+                    state <= TEST_START;
                 end
 
-            S10:
+            TEST_START:
                 begin
                     dut_start <= 0;
-                    state <= S11;
+                    state <= WAIT_TEST;
                 end
 
-            S11:
+            WAIT_TEST:
                 begin
                     if (~dut_busy) begin
                         result_bit <= 0;
-                        state <= S12;
+                        state <= CALC_CRC;
                     end
                 end
 
-            S12:
+            CALC_CRC:
                 begin
                     crc_shift <= 1;
                     crc_bit <= dut_y[result_bit];
                     result_bit <= result_bit + 1;
 
-                    if (result_bit == 15) begin
-                        state <= S13;
+                    if (&result_bit) begin
+                        state <= CHECK_TEST_ITER;
                     end
                 end
 
-            S13:
+            CHECK_TEST_ITER:
                 begin
                     crc_shift <= 0;
                     test_iteration <= test_iteration + 1;
 
                     if (&test_iteration) begin
-                        state <= S14;
+                        state <= SHOW_TEST_RES;
                     end else begin
-                        state <= S7;
+                        state <= PRINT_CRC;
                     end
                 end
 
-            S14:
+            SHOW_TEST_RES:
                 begin
                     out[7:0] <= crc_result;
                     dut_rst <= 1;
-                    state <= S0;
+                    state <= CHOOSE_MODE;
                 end
         endcase
     end

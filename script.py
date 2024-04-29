@@ -1,4 +1,4 @@
-file = open("lfsr2", "r")
+file = open("lfsr1", "r")
 lines = file.readlines()
 
 numbers = set([int(num.strip()) for num in lines])
